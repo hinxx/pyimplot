@@ -1,5 +1,6 @@
 # distutils: language = c++
-# distutils: sources = imgui-cpp/imgui.cpp imgui-cpp/imgui_draw.cpp imgui-cpp/imgui_demo.cpp imgui-cpp/imgui_widgets.cpp imgui-cpp/imgui_tables.cpp config-cpp/py_imconfig.cpp implot-cpp/implot.cpp implot-cpp/implot_items.cpp implot-cpp/implot_demo.cpp
+# 00distutils: sources = imgui-cpp/imgui.cpp imgui-cpp/imgui_draw.cpp imgui-cpp/imgui_demo.cpp imgui-cpp/imgui_widgets.cpp imgui-cpp/imgui_tables.cpp config-cpp/py_imconfig.cpp implot-cpp/implot.cpp implot-cpp/implot_items.cpp implot-cpp/implot_demo.cpp
+# distutils: sources = imgui-cpp/imgui.cpp imgui-cpp/imgui_draw.cpp imgui-cpp/imgui_widgets.cpp imgui-cpp/imgui_tables.cpp config-cpp/py_imconfig.cpp implot-cpp/implot.cpp implot-cpp/implot_items.cpp implot-cpp/implot_demo.cpp
 # distutils: include_dirs = imgui-cpp ansifeed-cpp implot-cpp
 # cython: embedsignature=True
 

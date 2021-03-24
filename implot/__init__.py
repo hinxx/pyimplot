@@ -9,3 +9,4 @@ __version__ = ".".join([str(x) for x in VERSION])
 #from imgui import _compat
 #from imgui import internal
 from implot.plot import *  # noqa
+from implot import plot

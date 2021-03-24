@@ -81,7 +81,7 @@ def extension_sources(path):
         sources += [
             'imgui-cpp/imgui.cpp',
             'imgui-cpp/imgui_draw.cpp',
-            'imgui-cpp/imgui_demo.cpp',
+            # 'imgui-cpp/imgui_demo.cpp',
             'imgui-cpp/imgui_widgets.cpp',
             'imgui-cpp/imgui_tables.cpp',
             'implot-cpp/implot.cpp',
@@ -147,7 +147,9 @@ EXTENSIONS = [
             ('PYIMGUI_CUSTOM_EXCEPTION', None)
         ] + os_specific_macros + general_macros,
         # include_dirs=['imgui', 'implot-cpp'],
-        include_dirs=['implot', 'config-cpp', 'imgui-cpp', 'ansifeed-cpp', 'implot-cpp'],
+        # include_dirs=['implot', 'config-cpp', 'imgui-cpp', 'ansifeed-cpp', 'implot-cpp'],
+        # include_dirs=['implot', 'config-cpp', 'imgui-cpp', 'implot-cpp'],
+        include_dirs=['implot', 'imgui-cpp', 'implot-cpp'],
     ),
 ]
 
