@@ -5,6 +5,8 @@ We still need the complete ImGui C++ source to create a functional pyimplot bind
 Creating just `implot` module at the moment.
 Still using all the pyimgui *.pxd, except for core.pxd.
 
+ImGui is pinned at v1.82, ImPlot is pinned at v0.9.
+
 ## Results 1
 
 $ python3
