@@ -1,0 +1,7 @@
+[submodule "imgui-cpp"]
+	path = imgui-cpp
+	url = https://github.com/ocornut/imgui.git
+
+[submodule "implot-cpp"]
+	path = implot-cpp
+	url = https://github.com/epezent/implot.git

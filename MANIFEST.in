@@ -1,0 +1,22 @@
+include README.md
+include LICENSE
+
+# Cython sources
+recursive-include implot *.pyx *.pxd
+
+# Cython-generated C++ sources
+recursive-include implot *.cpp *.h
+
+# Additional internal ImgGui configuration
+recursive-include config-cpp *.cpp *.h
+
+# ImGui sources
+recursive-include imgui-cpp *.cpp *.h
+prune imgui-cpp/examples
+prune imgui-cpp/extra_fonts
+
+# ImPlot sources
+recursive-include implot-cpp *.cpp *.h
+
+# ansifeed sources
+recursive-include ansifeed-cpp *.cpp *.h
