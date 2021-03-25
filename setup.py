@@ -81,7 +81,7 @@ def extension_sources(path):
         sources += [
             'imgui-cpp/imgui.cpp',
             'imgui-cpp/imgui_draw.cpp',
-            # 'imgui-cpp/imgui_demo.cpp',
+            'imgui-cpp/imgui_demo.cpp',
             'imgui-cpp/imgui_widgets.cpp',
             'imgui-cpp/imgui_tables.cpp',
             'implot-cpp/implot.cpp',
@@ -150,6 +150,9 @@ EXTENSIONS = [
         # include_dirs=['implot', 'config-cpp', 'imgui-cpp', 'ansifeed-cpp', 'implot-cpp'],
         # include_dirs=['implot', 'config-cpp', 'imgui-cpp', 'implot-cpp'],
         include_dirs=['implot', 'config-cpp', 'imgui-cpp', 'implot-cpp'],
+        # XXX: path to libimgui.so should not be hardcoded. Figure out the location of imgui..
+        library_dirs=["implot", "../pyimgui-1.82/imgui"],
+        libraries=["implot", "imgui"],
     ),
 ]
 

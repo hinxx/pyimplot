@@ -1,6 +1,6 @@
 # distutils: language = c++
-# distutils: sources = imgui-cpp/imgui.cpp imgui-cpp/imgui_draw.cpp imgui-cpp/imgui_demo.cpp imgui-cpp/imgui_widgets.cpp imgui-cpp/imgui_tables.cpp config-cpp/py_imconfig.cpp implot-cpp/implot.cpp implot-cpp/implot_items.cpp implot-cpp/implot_demo.cpp
-# distutils: include_dirs = imgui-cpp ansifeed-cpp implot-cpp
+# distutils: sources = config-cpp/py_imconfig.cpp
+# distutils: include_dirs = implot-cpp
 # cython: embedsignature=True
 
 import cython
@@ -12,9 +12,9 @@ from libcpp cimport bool
 from libc.stdlib cimport malloc, free
 
 cimport cimplot
-cimport cimgui
+cimport imgui.cimgui as cimgui
 cimport imgui.core as core
-cimport enums
+cimport imgui.enums as enums
 from imgui import core
 
 from cpython.version cimport PY_MAJOR_VERSION

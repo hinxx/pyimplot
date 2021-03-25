@@ -8,8 +8,7 @@ Notes:
 """
 from libcpp cimport bool
 
-from cimgui cimport ImVec2, ImVec4, ImTextureID, ImGuiCond, ImGuiMouseButton, ImGuiKeyModFlags, ImGuiDragDropFlags, ImU32, ImDrawList, ImGuiContext
-#from internal cimport ImTextureID, ImGuiCond, ImGuiMouseButton, ImGuiKeyModFlags, ImGuiDragDropFlags, ImU32, ImDrawList, ImGuiContext
+from imgui.cimgui cimport ImVec2, ImVec4, ImTextureID, ImGuiCond, ImGuiMouseButton, ImGuiKeyModFlags, ImGuiDragDropFlags, ImU32, ImDrawList, ImGuiContext
 
 # Must be outside cdef extern from "implot.h" since it is not defined there
 ctypedef ImPlotPoint (*ImPlotGetterCallback)(void* data, int idx)
