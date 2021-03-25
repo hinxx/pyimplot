@@ -116,6 +116,18 @@ EXTRAS_REQUIRE = {
     )
 }
 
+def imgui_location():
+    imgui_path = ''
+    try:
+        import imgui
+    except ImportError:
+        print('pyimgui module is required to build pyimplot')
+        exit(1)
+    finally:
+        imgui_path = imgui.__path__[0]
+        print(imgui_path)
+    return imgui_path
+
 # construct special 'full' extra that adds requirements for all built-in
 # backend integrations and additional extra features.
 EXTRAS_REQUIRE['full'] = list(set(chain(*EXTRAS_REQUIRE.values())))
@@ -152,8 +164,8 @@ EXTENSIONS = [
         # include_dirs=['implot', 'config-cpp', 'imgui-cpp', 'ansifeed-cpp', 'implot-cpp'],
         # include_dirs=['implot', 'config-cpp', 'imgui-cpp', 'implot-cpp'],
         include_dirs=['implot', 'config-cpp', 'imgui-cpp', 'implot-cpp'],
-        # XXX: path to libimgui.so should not be hardcoded. Figure out the location of imgui..
-        library_dirs=["implot", "../pyimgui-1.82/imgui"],
+        library_dirs=["implot", imgui_location()],
+        # order matters; libimplot needs to preceede libimgui!
         libraries=["implot", "imgui"],
     ),
 ]
