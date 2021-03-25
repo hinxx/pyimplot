@@ -75,3 +75,19 @@ Traceback (most recent call last):
 TypeError: Argument 'ctx' has incorrect type (expected imgui.core._ImGuiContext, got imgui.core._ImGuiContext)
 >>>
 
+# 2021-03-25
+
+After merging https://github.com/KinoxKlark/pyimgui/pull/2:
+
+$ python
+Python 3.9.2 (default, Mar 12 2021, 13:13:11)
+[GCC 7.5.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import imgui
+>>> import implot
+>>> ctx = imgui.create_context()
+>>> implot.create_context()
+<implot.plot._ImPlotContext object at 0x7f5526125370>
+>>> implot.set_imgui_context(ctx)
+>>>
+
