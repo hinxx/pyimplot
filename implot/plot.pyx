@@ -13,7 +13,7 @@ from libc.stdlib cimport malloc, free
 
 cimport cimplot
 cimport cimgui
-cimport core
+cimport imgui.core as core
 cimport enums
 from imgui import core
 

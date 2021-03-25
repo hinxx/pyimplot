@@ -149,7 +149,7 @@ EXTENSIONS = [
         # include_dirs=['imgui', 'implot-cpp'],
         # include_dirs=['implot', 'config-cpp', 'imgui-cpp', 'ansifeed-cpp', 'implot-cpp'],
         # include_dirs=['implot', 'config-cpp', 'imgui-cpp', 'implot-cpp'],
-        include_dirs=['implot', 'imgui-cpp', 'implot-cpp'],
+        include_dirs=['implot', 'config-cpp', 'imgui-cpp', 'implot-cpp'],
     ),
 ]
 
