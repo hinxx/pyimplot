@@ -77,6 +77,8 @@ TypeError: Argument 'ctx' has incorrect type (expected imgui.core._ImGuiContext,
 
 # 2021-03-25
 
+## Results 1
+
 After merging https://github.com/KinoxKlark/pyimgui/pull/2:
 
 $ python
@@ -91,3 +93,9 @@ Type "help", "copyright", "credits" or "license" for more information.
 >>> implot.set_imgui_context(ctx)
 >>>
 
+## Results 2
+
+Implemented shared library libimplot.so building from the sources.
+Use the libimplot.so in setup.py.
+Remove the pyimgui pxd file copies as they are not required.
+Test in doc/examples/integrations_glfw3.py works!
