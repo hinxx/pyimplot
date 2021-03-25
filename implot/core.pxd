@@ -5,11 +5,11 @@ some additional utilities that do not belong to `core`.
 """
 cimport cimgui
 
-cdef class _Font(object):
-    cdef cimgui.ImFont* _ptr
-
-    @staticmethod
-    cdef from_ptr(cimgui.ImFont* ptr)
+# cdef class _Font(object):
+#     cdef cimgui.ImFont* _ptr
+#
+#     @staticmethod
+#     cdef from_ptr(cimgui.ImFont* ptr)
 
 # allows using _ImGuiContext in plot.pyx
 cdef class _ImGuiContext(object):

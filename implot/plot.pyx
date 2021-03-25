@@ -14,8 +14,9 @@ from libc.stdlib cimport malloc, free
 
 cimport cimplot
 cimport cimgui
-#cimport core
+cimport core
 cimport enums
+from imgui import core
 
 from cpython.version cimport PY_MAJOR_VERSION
 
@@ -71,20 +72,20 @@ include "implot/common.pyx"
 
 
 
-cdef class _ImGuiContext(object):
-    cdef cimgui.ImGuiContext* _ptr
-
-    @staticmethod
-    cdef from_ptr(cimgui.ImGuiContext* ptr):
-        if ptr == NULL:
-            return None
-
-        instance = _ImGuiContext()
-        instance._ptr = ptr
-        return instance
-
-    def __eq__(_ImGuiContext self, _ImGuiContext other):
-        return other._ptr == self._ptr
+# cdef class _ImGuiContext(object):
+#     cdef cimgui.ImGuiContext* _ptr
+#
+#     @staticmethod
+#     cdef from_ptr(cimgui.ImGuiContext* ptr):
+#         if ptr == NULL:
+#             return None
+#
+#         instance = _ImGuiContext()
+#         instance._ptr = ptr
+#         return instance
+#
+#     def __eq__(_ImGuiContext self, _ImGuiContext other):
+#         return other._ptr == self._ptr
 
 
 cdef class _ImPlotContext(object):
@@ -622,8 +623,8 @@ def set_current_context(_ImPlotContext ctx):
     cimplot.SetCurrentContext(ctx._ptr)
 
 
-#def set_imgui_context(core._ImGuiContext ctx):
-def set_imgui_context(_ImGuiContext ctx):
+def set_imgui_context(core._ImGuiContext ctx):
+#def set_imgui_context(_ImGuiContext ctx):
     if ctx._ptr == NULL:
         raise RuntimeError("ImGui Context invalid (None or destroyed)")
     cimplot.SetImGuiContext(ctx._ptr)
