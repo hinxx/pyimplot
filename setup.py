@@ -142,6 +142,8 @@ EXTENSIONS = [
     Extension(
         "implot.plot", extension_sources("implot/plot"),
         extra_compile_args=os_specific_flags,
+        # XXX: handle Windows/MacOS
+        extra_link_args=["-Wl,-rpath,$ORIGIN"],
         define_macros=[
             # note: for raising custom exceptions directly in ImGui code
             ('PYIMGUI_CUSTOM_EXCEPTION', None)

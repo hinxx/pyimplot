@@ -11,7 +11,8 @@ UNAME_S := $(shell uname -s)
 
 CXXFLAGS = -I$(IMGUI_DIR) -I$(IMPLOT_DIR)
 CXXFLAGS += -g -Wall -Wformat -fPIC
-LIBS =
+# XXX: handle Windows/MacOS
+LIBS = -Wl,-rpath,'$$ORIGIN'
 
 ifeq ($(UNAME_S), Linux) #LINUX
 	ECHO_MESSAGE = "Linux"
