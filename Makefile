@@ -29,7 +29,10 @@ clean:
 .PHONY: solib
 solib: bootstrap
 	make -C shlib
-	cp shlib/libimplot.so implot/
+	if ! test -d implot/implotcpp; then mkdir implot/implotcpp; fi
+	cp shlib/libimplot.so implot/implotcpp
+	cp implot-cpp/implot.h implot/implotcpp
+	cp implot-cpp/implot_internal.h implot/implotcpp
 
 
 .PHONY: build

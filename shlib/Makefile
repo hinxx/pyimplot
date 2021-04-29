@@ -1,7 +1,10 @@
 # Compile sources into shared library. Tested on Linux.
 
+
 EXE = libimplot.so
-IMGUI_DIR = ../imgui-cpp
+#IMGUI_DIR = ../imgui-cpp
+IMGUI_DIR := $(shell python -c "import os, pkg_resources; print(os.path.dirname(pkg_resources.resource_filename('imgui', 'imgui.h')))")/imguicpp
+$(warning Using IMGUI_DIR $(IMGUI_DIR))
 IMPLOT_DIR = ../implot-cpp
 SOURCES = $(IMPLOT_DIR)/implot.cpp \
 	$(IMPLOT_DIR)/implot_demo.cpp \

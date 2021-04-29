@@ -19,6 +19,7 @@ implot/*.cpp
 implot/*.h
 implot/*.c
 shlib/*.o
+implot/implotcpp/
 
 # Distribution / packaging
 .Python

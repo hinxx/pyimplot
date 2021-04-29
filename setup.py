@@ -155,7 +155,7 @@ EXTENSIONS = [
         "implot.plot", extension_sources("implot/plot"),
         extra_compile_args=os_specific_flags,
         # XXX: handle Windows/MacOS
-        extra_link_args=["-Wl,-rpath,$ORIGIN"],
+        extra_link_args=["-Wl,-rpath,$ORIGIN/implotcpp"],
         define_macros=[
             # note: for raising custom exceptions directly in ImGui code
             ('PYIMGUI_CUSTOM_EXCEPTION', None)
@@ -163,8 +163,9 @@ EXTENSIONS = [
         # include_dirs=['imgui', 'implot-cpp'],
         # include_dirs=['implot', 'config-cpp', 'imgui-cpp', 'ansifeed-cpp', 'implot-cpp'],
         # include_dirs=['implot', 'config-cpp', 'imgui-cpp', 'implot-cpp'],
-        include_dirs=['implot', 'config-cpp', 'imgui-cpp', 'implot-cpp'],
-        library_dirs=["implot", imgui_location()],
+        # include_dirs=['implot', 'config-cpp', 'imgui-cpp', 'implot-cpp'],
+        include_dirs=['implot', 'config-cpp', imgui_location()+'/imguicpp', 'implot-cpp'],
+        library_dirs=["implot/implotcpp", imgui_location()+'/imguicpp'],
         # order matters; libimplot needs to preceede libimgui!
         libraries=["implot", "imgui"],
     ),
