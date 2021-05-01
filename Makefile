@@ -22,21 +22,11 @@ bootstrap: .bootstrapped ;
 
 .PHONY: clean
 clean:
-	rm -rf implot/*.cpp implot/*.c implot/*.h implot/*.so build/*
-	make -C shlib clean
-
-
-.PHONY: solib
-solib: bootstrap
-	make -C shlib
-	if ! test -d implot/implotcpp; then mkdir implot/implotcpp; fi
-	cp shlib/libimplot.so implot/implotcpp
-	cp implot-cpp/implot.h implot/implotcpp
-	cp implot-cpp/implot_internal.h implot/implotcpp
+	rm -rf implot/*.cpp implot/*.c implot/*.h implot/*.so build/* *.egg-info
 
 
 .PHONY: build
-build: bootstrap solib
+build: bootstrap
 	_CYTHONIZE_WITH_COVERAGE=1 python -m pip install -e . -v
 	# python ci/completion.py -o README.md with-pxd implot/cimplot.pxd
 

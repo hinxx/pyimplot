@@ -4,6 +4,11 @@ import sys
 from itertools import chain
 
 from setuptools import setup, Extension, find_packages
+from setuptools.command.build_ext import build_ext as _build_ext
+from setuptools.command.develop import develop as _develop
+from setuptools.command.egg_info import egg_info as _egg_info
+from setuptools.command.install_egg_info import install_egg_info as _install_egg_info
+
 
 try:
     from Cython.Build import cythonize
@@ -57,6 +62,14 @@ else:  # OS X and Linux
     os_specific_macros = []
 
 
+if sys.platform in ('cygwin', 'win32'):
+    os_runtime_library_dirs = ['TODO']
+if sys.platform == 'darwin':
+    os_runtime_library_dirs = ["@loader_path/../imgui.data", "@loader_path/../implot.data"]
+else:
+    os_runtime_library_dirs = ["$ORIGIN/../imgui.data", "$ORIGIN/../implot.data"]
+
+
 if _CYTHONIZE_WITH_COVERAGE:
     compiler_directives = {
         'linetrace': True,
@@ -79,11 +92,11 @@ def extension_sources(path):
         #       a plain C++ sdist without Cython we need to explicitly mark
         #       these files for compilation and linking.
         sources += [
-            'imgui-cpp/imgui.cpp',
-            'imgui-cpp/imgui_draw.cpp',
-            'imgui-cpp/imgui_demo.cpp',
-            'imgui-cpp/imgui_widgets.cpp',
-            'imgui-cpp/imgui_tables.cpp',
+            # 'imgui-cpp/imgui.cpp',
+            # 'imgui-cpp/imgui_draw.cpp',
+            # 'imgui-cpp/imgui_demo.cpp',
+            # 'imgui-cpp/imgui_widgets.cpp',
+            # 'imgui-cpp/imgui_tables.cpp',
             'implot-cpp/implot.cpp',
             'implot-cpp/implot_items.cpp',
             'implot-cpp/implot_demo.cpp',
@@ -100,6 +113,84 @@ def backend_extras(*requirements):
     """
     return ["PyOpenGL"] + list(requirements)
 
+
+def imgui_location():
+    imgui_path = ''
+    try:
+        import imgui
+    except ImportError:
+        print('pyimgui module is required to build pyimplot')
+        exit(1)
+    finally:
+        imgui_path = imgui.__path__[0]
+        print(imgui_path)
+    return imgui_path
+
+
+class build_ext(_build_ext):
+    parent = _build_ext
+    def run(self):
+        print("HK build_ext >>>>")
+        print("inplace:", self.inplace)
+        # place the result in the ./build/temp.linux-x86_64-3.9
+        self.old_build_lib, self.build_lib = self.build_lib, self.build_temp
+        # make sure not to copy the result to top level folder
+        self.old_inplace, self.inplace = self.inplace, 0
+        # self.dump_options()
+
+        # use our imconfig.h for the build
+        # self.copy_file(os.path.join('config-cpp', 'imconfig.h'), 'imgui-cpp')
+
+        # call the original build_ext
+        self.parent.run(self)
+        print("HK build_ext ####")
+
+        orig_file = self.get_ext_fullpath('libimplot')
+        target_dir = 'implot.data'
+        target_file = os.path.join(target_dir, 'libimplot.so')
+        # print('stage orig_file:', orig_file)
+        # create ./implot.data/libimplot.so (used for imgui extension build and editable runtime)
+        if not self.dry_run:
+            self.mkpath('implot.data')
+            self.copy_file(orig_file, target_file)
+            # print('develop target_file:', target_file)
+
+            if not self.old_inplace:
+                # create ./build/lib.linux-x86_64-3.9/implot.data/libimplot.so (used for install)
+                target_dir = os.path.join(self.old_build_lib, 'implot.data')
+                self.mkpath(target_dir)
+                target_file = os.path.join(target_dir, 'libimplot.so')
+                self.copy_file(orig_file, target_file)
+                # print('install target_file:', target_file)
+                for hdr in ['implot.h', 'implot_internal.h']:
+                    header_file = os.path.join('implot-cpp', hdr)
+                    self.copy_file(header_file, target_dir)
+                    # print('install header_file:', header_file)
+
+        print("HK build_ext <<<<")
+
+
+class develop(_develop):
+    parent = _develop
+    def run(self):
+        print("HK develop >>>>")
+        self.reinitialize_command('build_ext', inplace=1)
+        self.run_command('build_ext')
+        print("HK develop <<<<")
+
+
+class egg_info(_egg_info):
+    parent = _egg_info
+    def run(self):
+        pass
+
+
+class install_egg_info(_install_egg_info):
+    parent = _install_egg_info
+    def run(self):
+        pass
+
+
 EXTRAS_REQUIRE = {
     'Cython':  ['Cython>=0.24,<0.30'],
     'cocos2d': backend_extras(
@@ -115,18 +206,6 @@ EXTRAS_REQUIRE = {
         "pyglet>=1.5.6; sys_platform == 'darwin'",
     )
 }
-
-def imgui_location():
-    imgui_path = ''
-    try:
-        import imgui
-    except ImportError:
-        print('pyimgui module is required to build pyimplot')
-        exit(1)
-    finally:
-        imgui_path = imgui.__path__[0]
-        print(imgui_path)
-    return imgui_path
 
 # construct special 'full' extra that adds requirements for all built-in
 # backend integrations and additional extra features.
@@ -155,7 +234,8 @@ EXTENSIONS = [
         "implot.plot", extension_sources("implot/plot"),
         extra_compile_args=os_specific_flags,
         # XXX: handle Windows/MacOS
-        extra_link_args=["-Wl,-rpath,$ORIGIN/implotcpp"],
+        # extra_link_args=["-Wl,-rpath,$ORIGIN/implotcpp"],
+        runtime_library_dirs=os_runtime_library_dirs,
         define_macros=[
             # note: for raising custom exceptions directly in ImGui code
             ('PYIMGUI_CUSTOM_EXCEPTION', None)
@@ -164,12 +244,38 @@ EXTENSIONS = [
         # include_dirs=['implot', 'config-cpp', 'imgui-cpp', 'ansifeed-cpp', 'implot-cpp'],
         # include_dirs=['implot', 'config-cpp', 'imgui-cpp', 'implot-cpp'],
         # include_dirs=['implot', 'config-cpp', 'imgui-cpp', 'implot-cpp'],
-        include_dirs=['implot', 'config-cpp', imgui_location()+'/imguicpp', 'implot-cpp'],
-        library_dirs=["implot/implotcpp", imgui_location()+'/imguicpp'],
+        # include_dirs=['implot', 'config-cpp', imgui_location()+'/imguicpp', 'implot-cpp'],
+        include_dirs=['implot', 'config-cpp', imgui_location()+'/../imgui.data', 'implot-cpp'],
+        # library_dirs=["implot/implotcpp", imgui_location()+'/imguicpp'],
+        library_dirs=["implot.data", imgui_location()+'/../imgui.data'],
         # order matters; libimplot needs to preceede libimgui!
         libraries=["implot", "imgui"],
     ),
 ]
+
+
+setup(
+    name='libimplot',
+
+    cmdclass = {'build_ext': build_ext,
+                'develop': develop,
+                'egg_info': egg_info,
+                'install_egg_info': install_egg_info
+                },
+
+    ext_modules=[
+        Extension(
+            "libimplot",
+            sources=[
+                'implot-cpp/implot.cpp',
+                'implot-cpp/implot_items.cpp',
+                'implot-cpp/implot_demo.cpp',
+            ],
+            runtime_library_dirs=["$ORIGIN"],
+            include_dirs=[imgui_location()+'/../imgui.data', 'implot-cpp'],
+        ),
+    ]
+)
 
 
 setup(
