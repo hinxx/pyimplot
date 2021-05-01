@@ -63,11 +63,14 @@ else:  # OS X and Linux
 
 
 if sys.platform in ('cygwin', 'win32'):
-    os_runtime_library_dirs = ['TODO']
+    os_extra_link_args = ['TODO']
+    lib_extra_link_args = ['TODO']
 if sys.platform == 'darwin':
-    os_runtime_library_dirs = ["@loader_path/../imgui.data", "@loader_path/../implot.data"]
+    os_extra_link_args = ["-Wl,-rpath,@loader_path/../imgui.data", "-Wl,-rpath,@loader_path/../implot.data"]
+    lib_extra_link_args = ['-Wl,-install_name,@loader_path/../implot.data/libimplot.so']
 else:
-    os_runtime_library_dirs = ["$ORIGIN/../imgui.data", "$ORIGIN/../implot.data"]
+    os_extra_link_args = ["-Wl,-rpath,$ORIGIN/../imgui.data", "-Wl,-rpath,$ORIGIN/../implot.data"]
+    lib_extra_link_args = []
 
 
 if _CYTHONIZE_WITH_COVERAGE:
@@ -138,8 +141,10 @@ class build_ext(_build_ext):
         self.old_inplace, self.inplace = self.inplace, 0
         # self.dump_options()
 
-        # use our imconfig.h for the build
-        # self.copy_file(os.path.join('config-cpp', 'imconfig.h'), 'imgui-cpp')
+        if sys.platform == 'darwin':
+            from distutils import sysconfig
+            vars = sysconfig.get_config_vars()
+            vars['LDSHARED'] = vars['LDSHARED'].replace('-bundle', '-dynamiclib')
 
         # call the original build_ext
         self.parent.run(self)
@@ -212,41 +217,15 @@ EXTRAS_REQUIRE = {
 EXTRAS_REQUIRE['full'] = list(set(chain(*EXTRAS_REQUIRE.values())))
 
 EXTENSIONS = [
-    # Extension(
-    #     "imgui.core", extension_sources("imgui/core"),
-    #     extra_compile_args=os_specific_flags,
-    #     define_macros=[
-    #         # note: for raising custom exceptions directly in ImGui code
-    #         ('PYIMGUI_CUSTOM_EXCEPTION', None)
-    #     ] + os_specific_macros + general_macros,
-    #     include_dirs=['imgui', 'config-cpp', 'imgui-cpp', 'ansifeed-cpp'],
-    # ),
-    # Extension(
-    #     "imgui.internal", extension_sources("imgui/internal"),
-    #     extra_compile_args=os_specific_flags,
-    #     define_macros=[
-    #         # note: for raising custom exceptions directly in ImGui code
-    #         ('PYIMGUI_CUSTOM_EXCEPTION', None)
-    #     ] + os_specific_macros + general_macros,
-    #     include_dirs=['imgui', 'config-cpp', 'imgui-cpp', 'ansifeed-cpp'],
-    # ),
     Extension(
         "implot.plot", extension_sources("implot/plot"),
         extra_compile_args=os_specific_flags,
-        # XXX: handle Windows/MacOS
-        # extra_link_args=["-Wl,-rpath,$ORIGIN/implotcpp"],
-        runtime_library_dirs=os_runtime_library_dirs,
+        extra_link_args=os_extra_link_args,
         define_macros=[
             # note: for raising custom exceptions directly in ImGui code
             ('PYIMGUI_CUSTOM_EXCEPTION', None)
         ] + os_specific_macros + general_macros,
-        # include_dirs=['imgui', 'implot-cpp'],
-        # include_dirs=['implot', 'config-cpp', 'imgui-cpp', 'ansifeed-cpp', 'implot-cpp'],
-        # include_dirs=['implot', 'config-cpp', 'imgui-cpp', 'implot-cpp'],
-        # include_dirs=['implot', 'config-cpp', 'imgui-cpp', 'implot-cpp'],
-        # include_dirs=['implot', 'config-cpp', imgui_location()+'/imguicpp', 'implot-cpp'],
         include_dirs=['implot', 'config-cpp', imgui_location()+'/../imgui.data', 'implot-cpp'],
-        # library_dirs=["implot/implotcpp", imgui_location()+'/imguicpp'],
         library_dirs=["implot.data", imgui_location()+'/../imgui.data'],
         # order matters; libimplot needs to preceede libimgui!
         libraries=["implot", "imgui"],
@@ -271,7 +250,8 @@ setup(
                 'implot-cpp/implot_items.cpp',
                 'implot-cpp/implot_demo.cpp',
             ],
-            runtime_library_dirs=["$ORIGIN"],
+            language="c++",
+            extra_link_args=lib_extra_link_args,
             include_dirs=[imgui_location()+'/../imgui.data', 'implot-cpp'],
         ),
     ]
