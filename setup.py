@@ -3,6 +3,7 @@ import os
 import sys
 from itertools import chain
 
+from distutils.sysconfig import get_config_vars, get_config_var
 from setuptools import setup, Extension, find_packages
 from setuptools.command.build_ext import build_ext as _build_ext
 from setuptools.command.develop import develop as _develop
@@ -47,6 +48,7 @@ version_line = list(filter(lambda l: l.startswith('VERSION'), open(init)))[0]
 VERSION = get_version(eval(version_line.split('=')[-1]))
 README = os.path.join(os.path.dirname(__file__), 'README.md')
 
+lib_suffix = os.path.splitext(get_config_var('EXT_SUFFIX'))[0]
 
 if sys.platform in ('cygwin', 'win32'):  # windows
     # note: `/FI` means forced include in VC++/VC
@@ -63,14 +65,26 @@ else:  # OS X and Linux
 
 
 if sys.platform in ('cygwin', 'win32'):
-    os_extra_link_args = ['TODO']
-    lib_extra_link_args = ['TODO']
-if sys.platform == 'darwin':
-    os_extra_link_args = ["-Wl,-rpath,@loader_path/../imgui.data", "-Wl,-rpath,@loader_path/../implot.data"]
-    lib_extra_link_args = ['-Wl,-install_name,@loader_path/../implot.data/libimplot.so']
-else:
-    os_extra_link_args = ["-Wl,-rpath,$ORIGIN/../imgui.data", "-Wl,-rpath,$ORIGIN/../implot.data"]
+    libraries = ["libimplot"+lib_suffix, "libimgui"+lib_suffix]
+    os_extra_link_args = []
+
     lib_extra_link_args = []
+    lib_libraries = ['libimgui'+lib_suffix]
+    lib_extra_compile_args = ['/DIMPLOT_EXPORT']
+elif sys.platform == 'darwin':
+    libraries = ["implot"+lib_suffix, "imgui"+lib_suffix]
+    os_extra_link_args = ["-Wl,-rpath,@loader_path/../imgui.data", "-Wl,-rpath,@loader_path/../implot.data"]
+
+    lib_extra_link_args = ['-Wl,-install_name,@loader_path/../implot.data/libimplot.so']
+    lib_libraries = ['imgui'+lib_suffix]
+    lib_extra_compile_args = []
+else:
+    libraries = ["implot"+lib_suffix, "imgui"+lib_suffix]
+    os_extra_link_args = ["-Wl,-rpath,$ORIGIN/../imgui.data", "-Wl,-rpath,$ORIGIN/../implot.data"]
+
+    lib_extra_link_args = []
+    lib_libraries = ['imgui'+lib_suffix]
+    lib_extra_compile_args = []
 
 
 if _CYTHONIZE_WITH_COVERAGE:
@@ -130,8 +144,16 @@ def imgui_location():
     return imgui_path
 
 
+imgui_data = os.path.join(imgui_location(), '..', 'imgui.data')
+
+
 class build_ext(_build_ext):
     parent = _build_ext
+
+    def get_export_symbols(self, ext):
+        print("HK build_ext.get_export_symbols return []")
+        return []
+
     def run(self):
         print("HK build_ext >>>>")
         print("inplace:", self.inplace)
@@ -142,7 +164,6 @@ class build_ext(_build_ext):
         # self.dump_options()
 
         if sys.platform == 'darwin':
-            from distutils import sysconfig
             vars = sysconfig.get_config_vars()
             vars['LDSHARED'] = vars['LDSHARED'].replace('-bundle', '-dynamiclib')
 
@@ -150,27 +171,52 @@ class build_ext(_build_ext):
         self.parent.run(self)
         print("HK build_ext ####")
 
-        orig_file = self.get_ext_fullpath('libimplot')
-        target_dir = 'implot.data'
-        target_file = os.path.join(target_dir, 'libimplot.so')
-        # print('stage orig_file:', orig_file)
-        # create ./implot.data/libimplot.so (used for imgui extension build and editable runtime)
-        if not self.dry_run:
-            self.mkpath('implot.data')
-            self.copy_file(orig_file, target_file)
-            # print('develop target_file:', target_file)
+        # nothing to do in case of a dry-run
+        if self.dry_run:
+            return
 
-            if not self.old_inplace:
-                # create ./build/lib.linux-x86_64-3.9/implot.data/libimplot.so (used for install)
-                target_dir = os.path.join(self.old_build_lib, 'implot.data')
-                self.mkpath(target_dir)
-                target_file = os.path.join(target_dir, 'libimplot.so')
-                self.copy_file(orig_file, target_file)
-                # print('install target_file:', target_file)
-                for hdr in ['implot.h', 'implot_internal.h']:
-                    header_file = os.path.join('implot-cpp', hdr)
-                    self.copy_file(header_file, target_dir)
-                    # print('install header_file:', header_file)
+        print('get_ext_fullname', self.get_ext_fullname('libimplot'))
+        print('get_ext_filename', self.get_ext_filename('libimplot'))
+        print('get_ext_fullpath', self.get_ext_fullpath('libimplot'))
+
+        target_dir = 'implot.data'
+        self.mkpath(target_dir)
+
+        # shared object (.so, .dll)
+        orig_file = self.get_ext_fullpath('libimplot')
+        print('original dll file', orig_file)
+        target_file = os.path.join(target_dir, self.get_ext_filename('libimplot'))
+        self.copy_file(orig_file, target_dir)
+        print('develop dll target_file:', target_file)
+
+        # windows specific .lib file
+        if sys.platform in ('cygwin', 'win32'):
+            root, ext = os.path.splitext(self.get_ext_filename('libimplot'))
+            orig_file2 = os.path.join(self.build_temp, 'implot-cpp', root + '.lib')
+            print('original lib file', orig_file2)
+            target_file2 = os.path.join(target_dir, root + '.lib')
+            self.copy_file(orig_file2, target_dir)
+            print('develop lib target_file:', target_file2)
+
+        if not self.old_inplace:
+            target_dir = os.path.join(self.old_build_lib, 'implot.data')
+            self.mkpath(target_dir)
+
+            target_file = os.path.join(target_dir, self.get_ext_filename('libimplot'))
+            self.copy_file(orig_file, target_dir)
+            print('install dll target_file:', target_file)
+
+            # print('install target_file:', target_file)
+            for hdr in ['implot.h', 'implot_internal.h']:
+                header_file = os.path.join('implot-cpp', hdr)
+                self.copy_file(header_file, target_dir)
+                # print('install header_file:', header_file)
+
+            # windows specific .lib file
+            if sys.platform in ('cygwin', 'win32'):
+                target_file2 = os.path.join(target_dir, root + '.lib')
+                self.copy_file(orig_file2, target_dir)
+                print('install lib target_file:', target_file2)
 
         print("HK build_ext <<<<")
 
@@ -225,10 +271,9 @@ EXTENSIONS = [
             # note: for raising custom exceptions directly in ImGui code
             ('PYIMGUI_CUSTOM_EXCEPTION', None)
         ] + os_specific_macros + general_macros,
-        include_dirs=['implot', 'config-cpp', imgui_location()+'/../imgui.data', 'implot-cpp'],
-        library_dirs=["implot.data", imgui_location()+'/../imgui.data'],
-        # order matters; libimplot needs to preceede libimgui!
-        libraries=["implot", "imgui"],
+        include_dirs=['implot', 'config-cpp', imgui_data, 'implot-cpp'],
+        library_dirs=["implot.data", imgui_data],
+        libraries=libraries,
     ),
 ]
 
@@ -252,7 +297,10 @@ setup(
             ],
             language="c++",
             extra_link_args=lib_extra_link_args,
-            include_dirs=[imgui_location()+'/../imgui.data', 'implot-cpp'],
+            extra_compile_args=lib_extra_compile_args,
+            include_dirs=[imgui_data, 'implot-cpp'],
+            library_dirs=[imgui_data],
+            libraries=lib_libraries,
         ),
     ]
 )
