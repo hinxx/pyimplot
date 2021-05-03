@@ -75,7 +75,7 @@ elif sys.platform == 'darwin':
     libraries = ["implot"+lib_suffix, "imgui"+lib_suffix]
     os_extra_link_args = ["-Wl,-rpath,@loader_path/../imgui.data", "-Wl,-rpath,@loader_path/../implot.data"]
 
-    lib_extra_link_args = ['-Wl,-install_name,@loader_path/../implot.data/libimplot.so']
+    lib_extra_link_args = ['-Wl,-install_name,@loader_path/../implot.data/libimplot'+get_config_var('EXT_SUFFIX')]
     lib_libraries = ['imgui'+lib_suffix]
     lib_extra_compile_args = []
 else:
@@ -164,7 +164,7 @@ class build_ext(_build_ext):
         # self.dump_options()
 
         if sys.platform == 'darwin':
-            vars = sysconfig.get_config_vars()
+            vars = get_config_vars()
             vars['LDSHARED'] = vars['LDSHARED'].replace('-bundle', '-dynamiclib')
 
         # call the original build_ext
@@ -255,7 +255,8 @@ EXTRAS_REQUIRE = {
     'pyglet': backend_extras(
         "pyglet; sys_platform != 'darwin'",
         "pyglet>=1.5.6; sys_platform == 'darwin'",
-    )
+    ),
+    'imgui': backend_extras('imgui'),
 }
 
 # construct special 'full' extra that adds requirements for all built-in
