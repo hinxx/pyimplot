@@ -6,9 +6,9 @@ from itertools import chain
 from distutils.sysconfig import get_config_vars, get_config_var
 from setuptools import setup, Extension, find_packages
 from setuptools.command.build_ext import build_ext as _build_ext
-from setuptools.command.develop import develop as _develop
-from setuptools.command.egg_info import egg_info as _egg_info
-from setuptools.command.install_egg_info import install_egg_info as _install_egg_info
+# from setuptools.command.develop import develop as _develop
+# from setuptools.command.egg_info import egg_info as _egg_info
+# from setuptools.command.install_egg_info import install_egg_info as _install_egg_info
 
 
 try:
@@ -48,8 +48,6 @@ version_line = list(filter(lambda l: l.startswith('VERSION'), open(init)))[0]
 VERSION = get_version(eval(version_line.split('=')[-1]))
 README = os.path.join(os.path.dirname(__file__), 'README.md')
 
-lib_suffix = os.path.splitext(get_config_var('EXT_SUFFIX'))[0]
-
 if sys.platform in ('cygwin', 'win32'):  # windows
     # note: `/FI` means forced include in VC++/VC
     # note: may be obsoleted in future if ImGui gets patched
@@ -63,6 +61,7 @@ else:  # OS X and Linux
     os_specific_flags = ['-includeconfig-cpp/py_imconfig.h']
     os_specific_macros = []
 
+lib_suffix = os.path.splitext(get_config_var('EXT_SUFFIX'))[0]
 
 if sys.platform in ('cygwin', 'win32'):
     libraries = ["libimplot"+lib_suffix, "libimgui"+lib_suffix]
@@ -79,11 +78,12 @@ elif sys.platform == 'darwin':
     lib_libraries = ['imgui'+lib_suffix]
     lib_extra_compile_args = []
 else:
-    libraries = ["implot"+lib_suffix, "imgui"+lib_suffix]
+    # libraries = ["implot"+lib_suffix, "imgui"+lib_suffix]
+    libraries = ["implot", "imgui"]
     os_extra_link_args = ["-Wl,-rpath,$ORIGIN/../imgui.data", "-Wl,-rpath,$ORIGIN/../implot.data"]
 
     lib_extra_link_args = []
-    lib_libraries = ['imgui'+lib_suffix]
+    # lib_libraries = ['imgui'+lib_suffix]
     lib_extra_compile_args = []
 
 
@@ -146,7 +146,7 @@ def imgui_location():
 
 imgui_data = os.path.join(imgui_location(), '..', 'imgui.data')
 
-
+'''
 class build_ext(_build_ext):
     parent = _build_ext
 
@@ -240,6 +240,30 @@ class install_egg_info(_install_egg_info):
     parent = _install_egg_info
     def run(self):
         pass
+'''
+
+import setup_lib
+
+class build_ext(_build_ext):
+    parent = _build_ext
+
+    def run(self):
+        print("HK build_ext >>>>")
+
+        # nothing to do in case of a dry-run
+        if not self.dry_run:
+            # provide the supporting library
+            build_dir = os.path.join(self.build_lib, 'implot.data')
+            setup_lib.build(build_dir, self.build_temp)
+            target_dir = 'implot.data'
+            if not os.path.exists(target_dir):
+                os.makedirs(target_dir)
+            self.copy_tree(build_dir, target_dir)
+
+        # call the original build_ext
+        self.parent.run(self)
+
+        print("HK build_ext <<<<")
 
 
 EXTRAS_REQUIRE = {
@@ -278,7 +302,7 @@ EXTENSIONS = [
     ),
 ]
 
-
+'''
 setup(
     name='libimplot',
 
@@ -305,7 +329,7 @@ setup(
         ),
     ]
 )
-
+'''
 
 setup(
     name='implot',
@@ -321,6 +345,7 @@ setup(
 
     url="https://github.com/hinxx/pyimplot",
 
+    cmdclass = {'build_ext': build_ext},
     ext_modules=cythonize(
         EXTENSIONS,
         compiler_directives=compiler_directives, **cythonize_opts

@@ -9,4 +9,4 @@ if sys.platform == 'win32' and os.path.isdir(extra_dll_dir):
     else:
         os.environ.setdefault('PATH', '')
         os.environ['PATH'] += os.pathsep + extra_dll_dir
-print('extra_dll_dir', extra_dll_dir)
+    print('extra_dll_dir', extra_dll_dir)
